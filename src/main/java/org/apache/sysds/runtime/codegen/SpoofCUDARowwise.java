@@ -70,7 +70,7 @@ public class SpoofCUDARowwise extends SpoofRowwise implements SpoofCUDAOperator 
 	public ScalarObject execute(ExecutionContext ec, ArrayList<MatrixObject> inputs,
 		ArrayList<ScalarObject> scalarObjects) {
 		double[] result = new double[1];
-		Pointer ptr = ec.getGPUContext(0).allocate(getName(), LibMatrixCUDA.sizeOfDataType);
+		Pointer ptr = ec.getGPUContext(0).allocate(getName(), LibMatrixCUDA.sizeOfDataType, false);
 		long[] out = {1,1,1, 0, 0, GPUObject.getPointerAddress(ptr)};
 		int offset = 1;
 		if(call.exec(ec, this, ID, prepareInputPointers(ec, inputs, offset), prepareSideInputPointers(ec, inputs, offset, _tB1),

@@ -377,7 +377,7 @@ public class LibMatrixCUDA {
 		Pointer outputPointer = getDensePointer(gCtx, outputBlock, instName);
 		
 		// We can replace this with CuDNN tensor reduce
-		Pointer tmp = gCtx.allocate(instName, cols*sizeOfDataType);
+		Pointer tmp = gCtx.allocate(instName, (long) cols * sizeOfDataType, false);
 		reduceCol(gCtx, instName, "reduce_col_sum", imagePointer, tmp, N, cols);
 		reduceRow(gCtx, instName, "reduce_row_sum", tmp, outputPointer, toInt(C), toInt(HW));
 		gCtx.cudaFreeHelper(instName, tmp, DMLScript.EAGER_CUDA_FREE);
@@ -718,7 +718,7 @@ public class LibMatrixCUDA {
 		}
 		case OP_PLUS_SQ : {
 			// Calculate the squares in a temporary object tmp
-			Pointer tmp = gCtx.allocate(instName, size * sizeOfDataType);
+			Pointer tmp = gCtx.allocate(instName, (long) size * sizeOfDataType, false);
 
 			squareMatrix(gCtx, instName, in, tmp, rlen, clen);
 			// Then do the sum on the temporary object and free it
@@ -817,8 +817,8 @@ public class LibMatrixCUDA {
 		}
 		case OP_VARIANCE : {
 			// Temporary GPU array for
-			Pointer tmp = gCtx.allocate(instName, size * sizeOfDataType);
-			Pointer tmp2 = gCtx.allocate(instName, size * sizeOfDataType);
+			Pointer tmp = gCtx.allocate(instName, (long) size * sizeOfDataType, false);
+			Pointer tmp2 = gCtx.allocate(instName, (long) size * sizeOfDataType, false);
 
 			switch(reductionDirection) {
 
@@ -846,7 +846,7 @@ public class LibMatrixCUDA {
 
 				squareMatrix(gCtx, instName, tmp, tmp2, rlen, clen);
 
-				Pointer tmpRow = gCtx.allocate(instName, rlen * sizeOfDataType);
+				Pointer tmpRow = gCtx.allocate(instName, (long) rlen * sizeOfDataType, false);
 				reduceRow(gCtx, instName, "reduce_row_sum", tmp2, tmpRow, rlen, clen);
 
 				ScalarOperator divideOp = new RightScalarOperator(Divide.getDivideFnObject(), clen - 1);
@@ -864,7 +864,7 @@ public class LibMatrixCUDA {
 
 				squareMatrix(gCtx, instName, tmp, tmp2, rlen, clen);
 
-				Pointer tmpCol = gCtx.allocate(instName, clen * sizeOfDataType);
+				Pointer tmpCol = gCtx.allocate(instName, (long) clen * sizeOfDataType, false);
 				reduceCol(gCtx, instName, "reduce_col_sum", tmp2, tmpCol, rlen, clen);
 
 				ScalarOperator divideOp = new RightScalarOperator(Divide.getDivideFnObject(), rlen - 1);
@@ -933,7 +933,7 @@ public class LibMatrixCUDA {
 		int[] tmp = getKernelParamsForReduceAll(gCtx, n);
 		int blocks = tmp[0], threads = tmp[1], sharedMem = tmp[2];
 
-		Pointer tempOut = gCtx.allocate(instName, (long) blocks * sizeOfDataType); 
+		Pointer tempOut = gCtx.allocate(instName, (long) blocks * sizeOfDataType, false);
 
 		getCudaKernels(gCtx).launchKernel(kernelFunction, new ExecutionConfig(blocks, threads, sharedMem), in, tempOut, n);
 		
@@ -2298,7 +2298,7 @@ public class LibMatrixCUDA {
 			Pointer input = getDensePointer(gCtx, in, instName);
 			Pointer output = getDensePointer(gCtx, out, instName);
 			// storage for last value of each block
-			Pointer blk_res = gCtx.allocate(instName, cols * blocks_y * sizeOfDataType);
+			Pointer blk_res = gCtx.allocate(instName, (long) cols * blocks_y * sizeOfDataType, false);
 
 			alloc_duration = printKernelTiming(time, "allocation of temporary buffer (" +
 				cols * blocks_y * sizeOfDataType + " bytes)", alloc_duration, 0);
@@ -2388,9 +2388,9 @@ public class LibMatrixCUDA {
 
 			long total_mem_size = 0;
 			while( cascade_blocks > 0) {
-				long buf_size = 2 * block_height * cascade_blocks * sizeOfDataType;
+				long buf_size = 2L * block_height * cascade_blocks * sizeOfDataType;
 				total_mem_size += buf_size;
-				intermediate_buffers.add(gCtx.allocate(instName, buf_size));
+				intermediate_buffers.add(gCtx.allocate(instName, buf_size, false));
 				cascade_blocks = (cascade_blocks + block_height - 2) / block_height;
 				if(cascade_blocks > 0)
 					cb_list.add(cascade_blocks);
@@ -2652,9 +2652,9 @@ public class LibMatrixCUDA {
 		cudaSupportFunctions.cusolverDngeqrf_bufferSize(gCtx.getCusolverDnHandle(), m, n, A, m, lwork);
 		
 		// step 4: compute QR factorization
-		Pointer work = gCtx.allocate(instName, lwork[0] * sizeOfDataType);
-		Pointer tau = gCtx.allocate(instName, m * sizeOfDataType);
-		Pointer devInfo = gCtx.allocate(instName, Sizeof.INT);
+		Pointer work = gCtx.allocate(instName, (long) lwork[0] * sizeOfDataType, false);
+		Pointer tau = gCtx.allocate(instName, (long) m * sizeOfDataType, false);
+		Pointer devInfo = gCtx.allocate(instName, Sizeof.INT, false);
 		cudaSupportFunctions.cusolverDngeqrf(gCtx.getCusolverDnHandle(), m, n, A, m, tau, work, lwork[0], devInfo);
 		
 		int[] qrError = {-1};

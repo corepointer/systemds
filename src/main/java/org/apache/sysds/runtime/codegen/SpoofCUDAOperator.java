@@ -44,7 +44,7 @@ public interface SpoofCUDAOperator  {
 		protected Pointer transferScalars(ExecutionContext ec, SpoofCUDAOperator op, int sizeOfDataType,
 				ArrayList<ScalarObject> scalarObjects) {
 			double[] s = SpoofOperator.prepInputScalars(scalarObjects);
-			Pointer ptr = ec.getGPUContext(0).allocate(op.getName(), (long) scalarObjects.size() * sizeOfDataType);
+			Pointer ptr = ec.getGPUContext(0).allocate(op.getName(), (long) scalarObjects.size() * sizeOfDataType, false);
 			LibMatrixCUDA.cudaSupportFunctions.hostToDevice(ec.getGPUContext(0), s, ptr, op.getName());
 			return ptr;
 		}
@@ -98,32 +98,9 @@ public interface SpoofCUDAOperator  {
 					long rows = inputs.get(i).getNumRows();
 					long cols = inputs.get(i).getNumColumns();
 					Pointer b1 = inputs.get(i).getGPUObject(ec.getGPUContext(0)).getDensePointer();
-					Pointer ptr = ec.getGPUContext(0).allocate(getName(), rows * cols * sizeOfDataType);
-					
-//					double[] tmp1 = new double[(int) (rows * cols)];
-//					LibMatrixCUDA.cudaSupportFunctions.deviceToHost(ec.getGPUContext(0), b1, tmp1, getName(), false);
-//
-//					System.out.println("Mat before transpose: rows=" + rows + " cols=" + cols + "\n");
-//					for(int m = 0; m < rows; m++) {
-//						StringBuilder sb = new StringBuilder();
-//						for(int n = 0; n < cols; n++)
-//							sb.append(" " + tmp1[(int) (cols * m + n)]);
-//						System.out.println(sb.toString());
-//					}
-					
-					LibMatrixCUDA.denseTranspose(ec, ec.getGPUContext(0), getName(),
-						b1, ptr, rows, cols);
-					
-//					double[] tmp2 = new double[(int) (rows * cols)];
-//					LibMatrixCUDA.cudaSupportFunctions.deviceToHost(ec.getGPUContext(0), ptr, tmp2, getName(), false);
-//
-//					System.out.println("Mat after transpose: rows=" + cols + " cols=" + rows + "\n");
-//					for(int m = 0; m < cols; m++) {
-//						StringBuilder sb = new StringBuilder();
-//						for(int n = 0; n < rows; n++)
-//							sb.append(" " + tmp2[(int) (rows * m + n)]);
-//						System.out.println(sb.toString());
-//					}
+					Pointer ptr = ec.getGPUContext(0).allocate(getName(), rows * cols * sizeOfDataType, false);
+
+					LibMatrixCUDA.denseTranspose(ec, ec.getGPUContext(0), getName(), b1, ptr, rows, cols);
 
 					sides[j] = inputs.get(i).getNnz();
 					sides[j + 1] = cols;

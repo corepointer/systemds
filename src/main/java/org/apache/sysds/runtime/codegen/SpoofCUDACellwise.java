@@ -57,7 +57,7 @@ public class SpoofCUDACellwise extends SpoofCellwise implements SpoofCUDAOperato
 		int NT=256;
 		long N = inputs.get(0).getNumRows() * inputs.get(0).getNumColumns();
 		long num_blocks = ((N + NT * 2 - 1) / (NT * 2));
-		Pointer ptr = ec.getGPUContext(0).allocate(getName(), LibMatrixCUDA.sizeOfDataType * num_blocks);
+		Pointer ptr = ec.getGPUContext(0).allocate(getName(), LibMatrixCUDA.sizeOfDataType * num_blocks, false);
 		long[] out = {1,1,1, 0, 0, GPUObject.getPointerAddress(ptr)};
 		int offset = 1;
 		if(call.exec(ec, this, ID, prepareInputPointers(ec, inputs, offset), 

@@ -88,7 +88,7 @@ public class GPUContext {
 	 */
 	private JCudaKernels kernels;
 	
-	private GPUMemoryManager memoryManager;
+	private final GPUMemoryManager memoryManager;
 	
 	public GPUMemoryManager getMemoryManager() {
 		return memoryManager;
@@ -96,6 +96,7 @@ public class GPUContext {
 
 	protected GPUContext(int deviceNum) {
 		this.deviceNum = deviceNum;
+
 		cudaSetDevice(deviceNum);
 
 		cudaSetDeviceFlags(cudaDeviceScheduleBlockingSync);
@@ -189,10 +190,30 @@ public class GPUContext {
 	 *
 	 * @param instructionName name of instruction for which to record per instruction performance statistics, null if don't want to record
 	 * @param size            size of data (in bytes) to allocate
+	 * @param initialize if cudaMemset() should be called
+	 * @param initial_value value to write with cudaMemset()
+	 * @return jcuda pointer
+	 */
+	public Pointer allocate(String instructionName, long size, boolean initialize, int initial_value) {
+		return memoryManager.malloc(instructionName, size, initialize, initial_value);
+	}
+
+	/**
+	 * Default behavior for gpu memory allocation (init to zero)
+	 *
 	 * @return jcuda pointer
 	 */
 	public Pointer allocate(String instructionName, long size) {
-		return memoryManager.malloc(instructionName, size);
+		return memoryManager.malloc(instructionName, size, true, 0);
+	}
+
+	/**
+	 * Convenience method to turn off memset with only the boolean (not needing to supply the useless init value)
+	 *
+	 * @return jcuda pointer
+	 */
+	public Pointer allocate(String instructionName, long size, boolean initialize) {
+		return memoryManager.malloc(instructionName, size, initialize, 0);
 	}
 
 	/**
@@ -389,7 +410,7 @@ public class GPUContext {
 	 */
 	public void destroy() {
 		if (LOG.isTraceEnabled()) {
-			LOG.trace("GPU : this context was destroyed, this = " + this.toString());
+			LOG.trace("GPU : this context was destroyed, this = " + this);
 		}
 		clearMemory();
 

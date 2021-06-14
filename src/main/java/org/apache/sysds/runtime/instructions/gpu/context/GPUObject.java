@@ -248,7 +248,7 @@ public class GPUObject {
 		Pointer alpha = LibMatrixCUDA.one();
 		Pointer beta = LibMatrixCUDA.zero();
 		Pointer A = densePtr;
-		Pointer C = gCtx.allocate(null, m * getDatatypeSizeOf(n));
+		Pointer C = gCtx.allocate(null, m * getDatatypeSizeOf(n), false);
 
 		// Transpose the matrix to get a dense matrix
 		LibMatrixCUDA.cudaSupportFunctions.cublasgeam(gCtx.getCublasHandle(), CUBLAS_OP_T, CUBLAS_OP_T, m, n, alpha, A, lda, beta, new Pointer(),
@@ -276,8 +276,8 @@ public class GPUObject {
 		Pointer nnzPerRowPtr = null;
 		Pointer nnzTotalDevHostPtr = null;
 
-		nnzPerRowPtr = gCtx.allocate(null, getIntSizeOf(rows));
-		nnzTotalDevHostPtr = gCtx.allocate(null, getIntSizeOf(1));
+		nnzPerRowPtr = gCtx.allocate(null, getIntSizeOf(rows), false);
+		nnzTotalDevHostPtr = gCtx.allocate(null, getIntSizeOf(1), false);
 
 		// Output is in dense vector format, convert it to CSR
 		LibMatrixCUDA.cudaSupportFunctions.cusparsennz(cusparseHandle, cusparseDirection.CUSPARSE_DIRECTION_ROW, rows, cols, matDescr, densePtr, rows,
@@ -574,8 +574,8 @@ public class GPUObject {
 				int cols = toIntExact(mat.getNumColumns());
 				Pointer nnzPerRowPtr = null;
 				Pointer nnzTotalDevHostPtr = null;
-				nnzPerRowPtr = gCtx.allocate(instName, getIntSizeOf(rows));
-				nnzTotalDevHostPtr = gCtx.allocate(instName, getIntSizeOf(1));
+				nnzPerRowPtr = gCtx.allocate(instName, getIntSizeOf(rows), false);
+				nnzTotalDevHostPtr = gCtx.allocate(instName, getIntSizeOf(1), false);
 				LibMatrixCUDA.cudaSupportFunctions.cusparsennz(cusparseHandle, cusparseDirection.CUSPARSE_DIRECTION_ROW, rows, cols, matDescr, getDensePointer(), rows,
 						nnzPerRowPtr, nnzTotalDevHostPtr);
 				int[] nnzC = { -1 };
